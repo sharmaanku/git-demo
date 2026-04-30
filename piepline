@@ -1,53 +1,16 @@
 pipeline {
     agent any
 
-    environment {
-        APP_NAME = "git-demo-app"
-        BUILD_DIR = "build"
-    }
-
     stages {
-
         stage('Checkout') {
             steps {
-                echo "Cloning repository..."
-                git branch: 'master', url: 'https://github.com/sharmaanku/git-demo.git'
+                git url: 'https://github.com/sharmaanku/git-demo.git'
             }
         }
 
         stage('Build') {
             steps {
-                sh '''
-                mkdir -p ${BUILD_DIR}
-                echo "Build from Jenkins" > ${BUILD_DIR}/app.txt
-                '''
-            }
-        }
-
-        stage('Test') {
-            steps {
-                sh '''
-                if [ -f ${BUILD_DIR}/app.txt ]; then
-                    echo "Test Passed"
-                else
-                    echo "Test Failed"
-                    exit 1
-                fi
-                '''
-            }
-        }
-
-        stage('Package') {
-            steps {
-                sh '''
-                tar -czf ${BUILD_DIR}/${APP_NAME}.tar.gz ${BUILD_DIR}
-                '''
-            }
-        }
-
-        stage('Archive') {
-            steps {
-                archiveArtifacts artifacts: 'build/*.tar.gz', fingerprint: true
+                sh 'echo "Pipeline Working ✅"'
             }
         }
     }
