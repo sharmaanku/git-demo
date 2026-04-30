@@ -1,0 +1,18 @@
+kubeadm reset -f
+
+systemctl stop kubelet
+systemctl stop containerd
+systemctl stop docker
+
+apt-get purge -y kubeadm kubectl kubelet kubernetes-cni containerd docker docker.io
+apt-get autoremove -y
+
+rm -rf /etc/kubernetes/
+rm -rf /var/lib/etcd
+rm -rf /var/lib/kubelet
+rm -rf /etc/cni
+rm -rf /opt/cni
+rm -rf /var/lib/containerd
+
+swapoff -a
+sed -i '/ swap / s/^/#/' /etc/fstab
