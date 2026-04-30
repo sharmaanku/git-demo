@@ -2,20 +2,39 @@
 
 set -e
 
-echo "========== CLEANUP =========="
+echo "========== STEP 1: CLEAN SYSTEM =========="
+
 sudo kubeadm reset -f || true
 sudo systemctl stop kubelet || true
 sudo systemctl stop containerd || true
+sudo systemctl stop docker || true
 
-sudo apt-get purge -y kubeadm kubectl kubelet kubernetes-cni containerd || true
+sudo apt-get purge -y kubeadm kubectl kubelet kubernetes-cni containerd docker docker.io || true
 sudo apt-get autoremove -y
 
-sudo rm -rf /etc/kubernetes /var/lib/etcd /var/lib/kubelet /etc/cni /opt/cni /var/lib/containerd
+sudo rm -rf /etc/kubernetes \
+/var/lib/etcd \
+/var/lib/kubelet \
+/etc/cni \
+/opt/cni \
+/var/lib/containerd \
+$HOME/.kube
+
+# FIX: Remove conflicting Kubernetes repo (YOUR ERROR)
+sudo rm -f /etc/apt/sources.list.d/kubernetes.list
+sudo rm -f /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+sudo rm -f /etc/apt/keyrings/k8s.gpg
+sudo rm -f /etc/apt/keyrings/kubernetes.gpg
+
+sudo apt-get clean
+
+echo "========== STEP 2: DISABLE SWAP =========="
 
 sudo swapoff -a
 sudo sed -i '/ swap / s/^/#/' /etc/fstab
 
-echo "========== SYSTEM CONFIG =========="
+echo "========== STEP 3: SYSTEM CONFIG =========="
+
 sudo modprobe overlay
 sudo modprobe br_netfilter
 
@@ -27,7 +46,8 @@ EOF
 
 sudo sysctl --system
 
-echo "========== INSTALL CONTAINERD =========="
+echo "========== STEP 4: INSTALL CONTAINERD =========="
+
 sudo apt-get update -y
 sudo apt-get install -y containerd
 
@@ -40,50 +60,62 @@ sudo sed -i 's/SystemdCgroup = false/SystemdCgroup = true/' /etc/containerd/conf
 sudo systemctl restart containerd
 sudo systemctl enable containerd
 
-echo "========== VERIFY CONTAINERD =========="
+echo "========== VERIFY containerd =========="
+
 if ! systemctl is-active --quiet containerd; then
-  echo "❌ containerd is NOT running. Exiting."
+  echo "❌ containerd failed. Exiting."
   exit 1
 fi
 
-echo "========== INSTALL KUBERNETES =========="
+echo "========== STEP 5: INSTALL KUBERNETES =========="
+
 sudo apt-get install -y apt-transport-https ca-certificates curl gpg
 
 sudo mkdir -p /etc/apt/keyrings
 
 curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key | \
-sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes.gpg
 
-echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] \
+echo "deb [signed-by=/etc/apt/keyrings/kubernetes.gpg] \
 https://pkgs.k8s.io/core:/stable:/v1.29/deb/ /" | \
 sudo tee /etc/apt/sources.list.d/kubernetes.list
 
 sudo apt-get update -y
+
 sudo apt-get install -y kubelet kubeadm kubectl
 sudo apt-mark hold kubelet kubeadm kubectl
 
-echo "========== INITIALIZING CLUSTER =========="
-sudo kubeadm init --pod-network-cidr=192.168.0.0/16 \
+echo "========== STEP 6: INITIALIZE CLUSTER =========="
+
+sudo kubeadm init \
+--pod-network-cidr=192.168.0.0/16 \
 --cri-socket=unix:///run/containerd/containerd.sock
 
-echo "========== SETTING KUBECONFIG =========="
+echo "========== STEP 7: CONFIGURE KUBECTL =========="
+
 mkdir -p $HOME/.kube
 sudo cp /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 
 export KUBECONFIG=$HOME/.kube/config
 
-echo "========== INSTALL NETWORK =========="
+echo 'export KUBECONFIG=$HOME/.kube/config' >> $HOME/.bashrc
+
+echo "========== STEP 8: INSTALL NETWORK =========="
+
 kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
 
-echo "========== SINGLE NODE FIX =========="
+echo "========== STEP 9: SINGLE NODE FIX =========="
+
 kubectl taint nodes --all node-role.kubernetes.io/control-plane- || true
 
-echo "========== WAITING FOR NODE =========="
-sleep 20
+echo "========== WAITING FOR CLUSTER =========="
 
-echo "========== VERIFY =========="
+sleep 30
+
+echo "========== FINAL VERIFY =========="
+
 kubectl get nodes
 kubectl get pods -A
 
-echo "🎉 SUCCESS: Kubernetes is up and running!"
+echo "🎉 SUCCESS: Kubernetes cluster is ready!"
