@@ -11,14 +11,12 @@ pipeline {
         stage('Checkout') {
             steps {
                 echo "Cloning repository..."
-                git branch: 'main', url: 'https://github.com/sharmaanku/git-demo.git'
+                git branch: 'master', url: 'https://github.com/sharmaanku/git-demo.git'
             }
         }
 
         stage('Build') {
             steps {
-                echo "Building application..."
-
                 sh '''
                 mkdir -p ${BUILD_DIR}
                 echo "Build from Jenkins" > ${BUILD_DIR}/app.txt
@@ -28,8 +26,6 @@ pipeline {
 
         stage('Test') {
             steps {
-                echo "Running tests..."
-
                 sh '''
                 if [ -f ${BUILD_DIR}/app.txt ]; then
                     echo "Test Passed"
@@ -43,8 +39,6 @@ pipeline {
 
         stage('Package') {
             steps {
-                echo "Packaging..."
-
                 sh '''
                 tar -czf ${BUILD_DIR}/${APP_NAME}.tar.gz ${BUILD_DIR}
                 '''
@@ -53,18 +47,8 @@ pipeline {
 
         stage('Archive') {
             steps {
-                echo "Archiving artifacts..."
                 archiveArtifacts artifacts: 'build/*.tar.gz', fingerprint: true
             }
-        }
-    }
-
-    post {
-        success {
-            echo "Pipeline SUCCESS ✅"
-        }
-        failure {
-            echo "Pipeline FAILED ❌"
         }
     }
 }
