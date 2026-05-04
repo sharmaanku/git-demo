@@ -1,0 +1,56 @@
+#!/bin/bash
+
+set -e
+
+echo "============================="
+echo "Updating system"
+echo "============================="
+sudo apt update -y && sudo apt upgrade -y
+
+echo "============================="
+echo "Installing dependencies"
+echo "============================="
+sudo apt install -y curl zip unzip git wget
+
+echo "============================="
+echo "Installing SDKMAN"
+echo "============================="
+curl -s "https://get.sdkman.io" | bash
+
+# Load SDKMAN
+source "$HOME/.sdkman/bin/sdkman-init.sh"
+
+echo "============================="
+echo "Installing Java (Temurin 17)"
+echo "============================="
+sdk install java 17.0.10-tem
+
+echo "============================="
+echo "Installing Maven & Gradle"
+echo "============================="
+sdk install maven
+sdk install gradle
+
+echo "============================="
+echo "Installing Micronaut CLI"
+echo "============================="
+sdk install micronaut
+
+echo "============================="
+echo "Installing Quarkus CLI"
+echo "============================="
+sdk install quarkus
+
+echo "============================="
+echo "Verifying installations"
+echo "============================="
+
+java -version
+mvn -version
+gradle -version
+mn --version
+quarkus --version
+
+echo "============================="
+echo "Setup completed successfully!"
+echo "============================="
