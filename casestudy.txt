@@ -1,0 +1,83 @@
+# Case Study Problem Statement: Telecom Customer Usage Data Pipeline using Azure Data Factory, Databricks, and Snowflake
+
+A leading telecommunications company, **TeleConnect Communications**, operates across multiple regions and serves millions of customers. Every day, various operational systems generate customer-related data such as call records, internet usage, SMS transactions, recharge activities, and customer profile information. The business wants to centralize this data in **Snowflake** for enterprise reporting, customer analytics, revenue analysis, and operational monitoring.
+
+Currently, data files are delivered daily to cloud storage, but the ingestion process is manual and time-consuming. The organization wants to automate the entire workflow using **Azure Data Factory (ADF)** and **Azure Databricks**.
+
+The proposed solution should use **Azure Data Factory** to orchestrate the pipeline and trigger a **Databricks notebook**. The Databricks notebook should read the source files, perform basic validations such as null checks and data type verification, and then load the processed data into Snowflake tables. Once the data is successfully loaded, Snowflake should serve as the centralized analytics platform for downstream reporting and business intelligence applications.
+
+The solution must support daily data loads, maintain auditability, provide failure notifications, and ensure that the latest telecom data is available in Snowflake for analytical consumption.
+
+---
+
+# Source Data
+
+## File 1: Customer Master Data (`customers.csv`)
+
+| customer_id | customer_name | city      | state       | activation_date | plan_type |
+| ----------- | ------------- | --------- | ----------- | --------------- | --------- |
+| C1001       | Rahul Sharma  | Delhi     | Delhi       | 2024-01-10      | Prepaid   |
+| C1002       | Priya Verma   | Mumbai    | Maharashtra | 2023-11-15      | Postpaid  |
+| C1003       | Amit Singh    | Bangalore | Karnataka   | 2024-03-01      | Postpaid  |
+| C1004       | Neha Gupta    | Chennai   | Tamil Nadu  | 2024-02-18      | Prepaid   |
+| C1005       | Rohan Mehta   | Hyderabad | Telangana   | 2023-12-20      | Postpaid  |
+
+---
+
+## File 2: Call Usage Data (`call_usage.csv`)
+
+| call_id | customer_id | call_date  | duration_minutes | destination_type |
+| ------- | ----------- | ---------- | ---------------- | ---------------- |
+| CALL001 | C1001       | 2026-06-01 | 15               | Local            |
+| CALL002 | C1002       | 2026-06-01 | 32               | STD              |
+| CALL003 | C1003       | 2026-06-01 | 8                | Local            |
+| CALL004 | C1004       | 2026-06-01 | 20               | International    |
+| CALL005 | C1005       | 2026-06-01 | 12               | Local            |
+
+---
+
+## File 3: Internet Usage Data (`internet_usage.csv`)
+
+| usage_id | customer_id | usage_date | data_consumed_gb |
+| -------- | ----------- | ---------- | ---------------- |
+| D001     | C1001       | 2026-06-01 | 2.5              |
+| D002     | C1002       | 2026-06-01 | 8.2              |
+| D003     | C1003       | 2026-06-01 | 5.1              |
+| D004     | C1004       | 2026-06-01 | 1.8              |
+| D005     | C1005       | 2026-06-01 | 6.7              |
+
+---
+
+## File 4: Recharge Transactions (`recharge_transactions.csv`)
+
+| recharge_id | customer_id | recharge_date | recharge_amount |
+| ----------- | ----------- | ------------- | --------------- |
+| R001        | C1001       | 2026-06-01    | 299             |
+| R002        | C1002       | 2026-06-01    | 799             |
+| R003        | C1003       | 2026-06-01    | 599             |
+| R004        | C1004       | 2026-06-01    | 249             |
+| R005        | C1005       | 2026-06-01    | 999             |
+
+---
+
+# Expected Workflow
+
+1. Daily telecom data files arrive in Azure Data Lake Storage.
+2. Azure Data Factory detects the files and triggers the Databricks notebook.
+3. Databricks reads all telecom source files.
+4. Databricks performs basic validation:
+
+   * Mandatory field checks
+   * Null value checks
+   * Data type verification
+   * Duplicate record detection
+5. Processed data is loaded into Snowflake tables:
+
+   * CUSTOMER_MASTER
+   * CALL_USAGE
+   * INTERNET_USAGE
+   * RECHARGE_TRANSACTIONS
+6. Azure Data Factory captures execution status and logs.
+7. Business users access the latest telecom data from Snowflake for reporting and analytics.
+
+This case study focuses on **ADF orchestration → Databricks notebook execution → Snowflake data loading** in a realistic telecom business scenario.
