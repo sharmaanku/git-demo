@@ -1,0 +1,297 @@
+
+# Step 1: Create Sample Data in Snowflake
+
+Login to Snowflake and run:
+
+```sql
+CREATE OR REPLACE DATABASE ANKUR_DEMO;
+
+USE DATABASE ANKUR_DEMO;
+
+CREATE OR REPLACE SCHEMA PUBLIC;
+
+USE SCHEMA PUBLIC;
+
+CREATE OR REPLACE TABLE EMPLOYEE
+(
+    EMP_ID INTEGER,
+    EMP_NAME STRING,
+    SALARY NUMBER
+);
+
+INSERT INTO EMPLOYEE VALUES
+(1,'JOHN',5000),
+(2,'SMITH',6000),
+(3,'DAVID',7000);
+```
+
+Verify:
+
+```sql
+SELECT * FROM EMPLOYEE;
+```
+
+Expected Output:
+
+```text
+1 JOHN 5000
+2 SMITH 6000
+3 DAVID 7000
+```
+
+---
+
+# Step 2: Create Databricks Cluster
+
+1. Login to Databricks
+2. Click Compute
+3. Create Cluster
+4. Start Cluster
+
+Wait until cluster status becomes Running.
+
+---
+
+# Step 3: Add Snowpark Scala Library
+
+Go to:
+
+```text
+Compute
+→ Your Cluster
+→ Libraries
+→ Install New
+→ Maven
+```
+
+Package:
+
+```text
+com.snowflake:snowpark_2.13:1.18.0
+```
+
+(Use the version that matched your cluster and is currently working.)
+
+Install and restart cluster if required.
+
+---
+
+# Step 4: Create Scala Notebook
+
+Create a new notebook.
+
+Select:
+
+```text
+Language = Scala
+```
+
+---
+
+# Step 5: Create Snowpark Session
+
+Paste:
+
+```scala
+import com.snowflake.snowpark._
+
+val options = Map(
+  "URL" -> "https://VQWOPXI-VB30682.snowflakecomputing.com",
+  "USER" -> "ADF_USER",
+  "PASSWORD" -> "Welcome@123",
+  "ROLE" -> "ACCOUNTADMIN",
+  "WAREHOUSE" -> "COMPUTE_WH",
+  "DB" -> "ANKUR_DEMO",
+  "SCHEMA" -> "PUBLIC"
+)
+
+val session = Session.builder.configs(options).create
+```
+
+Run successfully.
+
+---
+
+# Step 6: Read Snowflake Table
+
+```scala
+val df = session.table("EMPLOYEE")
+df.show()
+```
+
+Output:
+
+```text
+----------------------------------
+|EMP_ID |EMP_NAME |SALARY|
+----------------------------------
+|1      |JOHN     |5000  |
+|2      |SMITH    |6000  |
+|3      |DAVID    |7000  |
+----------------------------------
+```
+
+---
+
+# Step 7: Filter Data
+
+```scala
+import com.snowflake.snowpark.functions._
+
+val filteredDF =
+  session.table("EMPLOYEE")
+         .filter(col("SALARY") > 5500)
+
+filteredDF.show()
+```
+
+Output:
+
+```text
+SMITH 6000
+DAVID 7000
+```
+
+---
+
+# Step 8: Select Specific Columns
+
+```scala
+val selectedDF =
+  session.table("EMPLOYEE")
+         .select(col("EMP_NAME"))
+
+selectedDF.show()
+```
+
+Output:
+
+```text
+JOHN
+SMITH
+DAVID
+```
+
+---
+
+# Step 9: Add New Column
+
+```scala
+val bonusDF =
+  session.table("EMPLOYEE")
+         .withColumn(
+            "BONUS",
+            col("SALARY") * 0.10
+          )
+
+bonusDF.show()
+```
+
+Output:
+
+```text
+EMP_ID EMP_NAME SALARY BONUS
+1      JOHN     5000   500
+2      SMITH    6000   600
+3      DAVID    7000   700
+```
+
+---
+
+# Step 10: Aggregate Data
+
+```scala
+val aggDF =
+  session.table("EMPLOYEE")
+         .agg(sum(col("SALARY")))
+
+aggDF.show()
+```
+
+Output:
+
+```text
+18000
+```
+
+---
+
+# Step 11: Create New Snowflake Table
+
+```scala
+bonusDF.write.mode("overwrite").saveAsTable("EMPLOYEE_BONUS")
+```
+
+Verify in Snowflake:
+
+```sql
+SELECT * FROM EMPLOYEE_BONUS;
+```
+
+---
+
+# Step 12: Insert Data Using Snowpark
+
+```scala
+session.sql(
+"""
+INSERT INTO EMPLOYEE
+VALUES (4,'JAMES',8000)
+"""
+).collect()
+```
+
+Verify:
+
+```scala
+session.table("EMPLOYEE").show()
+```
+
+---
+
+# Step 13: Execute SQL from Databricks
+
+```scala
+val result =
+  session.sql(
+    """
+    SELECT EMP_NAME,SALARY
+    FROM EMPLOYEE
+    WHERE SALARY > 6000
+    """
+  )
+
+result.show()
+```
+
+Output:
+
+```text
+DAVID 7000
+JAMES 8000
+```
+
+---
+
+# Step 14: Count Records
+
+```scala
+val count =
+  session.table("EMPLOYEE").count()
+
+println(count)
+```
+
+Output:
+
+```text
+4
+```
+
+---
+
+# Step 15: Close Session
+
+```scala
+session.close()
+```
