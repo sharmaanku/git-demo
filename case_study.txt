@@ -1,0 +1,223 @@
+# Case Study: Telecom SIM Activation Data Ingestion Using Azure Function and Snowflake
+
+## Problem Statement
+
+A telecom company launches a new prepaid SIM activation portal. Customers can activate SIM cards through the company's website.
+
+Currently, activation requests are stored in a CSV file and manually loaded into Snowflake by the operations team, causing delays in customer onboarding and reporting.
+
+The company wants to automate this process by using an Azure Function that receives activation requests through an API and directly stores them in Snowflake.
+
+The solution should:
+
+* Receive customer activation details through an HTTP request.
+* Validate mandatory fields.
+* Insert the activation record into Snowflake.
+* Return a success or failure response to the calling application.
+* Allow business teams to query activation data immediately from Snowflake.
+
+---
+
+## Business Requirements
+
+When a customer activates a SIM card, the following information should be captured:
+
+* Customer Name
+* Mobile Number
+* Plan Name
+* Circle/Region
+* Activation Date
+* Activation Status
+
+The activation data must be stored in Snowflake in near real time.
+
+---
+
+## Architecture
+
+```text
+Customer Portal
+       |
+       v
+Azure Function (HTTP Trigger)
+       |
+       v
+Snowflake Table
+```
+
+---
+
+## Sample Data
+
+### Incoming Request
+
+```json
+{
+  "customer_name": "Rahul Sharma",
+  "mobile_number": "9876543210",
+  "plan_name": "Unlimited 999",
+  "circle": "Delhi",
+  "status": "ACTIVE"
+}
+```
+
+---
+
+## Snowflake Setup
+
+### Create Database and Schema
+
+```sql
+CREATE DATABASE TELECOM_DB;
+
+CREATE SCHEMA TELECOM_DB.OPERATIONS;
+```
+
+### Create Table
+
+```sql
+CREATE TABLE TELECOM_DB.OPERATIONS.SIM_ACTIVATIONS
+(
+    ACTIVATION_ID NUMBER AUTOINCREMENT,
+    CUSTOMER_NAME VARCHAR,
+    MOBILE_NUMBER VARCHAR,
+    PLAN_NAME VARCHAR,
+    CIRCLE VARCHAR,
+    ACTIVATION_DATE TIMESTAMP,
+    STATUS VARCHAR
+);
+```
+
+---
+
+## Azure Function Requirements
+
+### requirements.txt
+
+```text
+azure-functions
+snowflake-connector-python
+```
+
+---
+
+## Azure Function Code
+
+```python
+import azure.functions as func
+import snowflake.connector
+import json
+from datetime import datetime
+
+def main(req: func.HttpRequest) -> func.HttpResponse:
+
+    try:
+
+        body = req.get_json()
+
+        customer_name = body["customer_name"]
+        mobile_number = body["mobile_number"]
+        plan_name = body["plan_name"]
+        circle = body["circle"]
+        status = body["status"]
+
+        conn = snowflake.connector.connect(
+            user='TELECOM_USER',
+            password='Password123',
+            account='your_account',
+            warehouse='COMPUTE_WH',
+            database='TELECOM_DB',
+            schema='OPERATIONS'
+        )
+
+        cur = conn.cursor()
+
+        cur.execute("""
+        INSERT INTO SIM_ACTIVATIONS
+        (
+            CUSTOMER_NAME,
+            MOBILE_NUMBER,
+            PLAN_NAME,
+            CIRCLE,
+            ACTIVATION_DATE,
+            STATUS
+        )
+        VALUES (%s,%s,%s,%s,%s,%s)
+        """,
+        (
+            customer_name,
+            mobile_number,
+            plan_name,
+            circle,
+            datetime.now(),
+            status
+        ))
+
+        conn.commit()
+
+        cur.close()
+        conn.close()
+
+        return func.HttpResponse(
+            "Activation saved successfully",
+            status_code=200
+        )
+
+    except Exception as e:
+
+        return func.HttpResponse(
+            str(e),
+            status_code=500
+        )
+```
+
+---
+
+## Testing
+
+### API Request
+
+```http
+POST /api/ActivateSIM
+```
+
+### Request Body
+
+```json
+{
+  "customer_name": "Amit Kumar",
+  "mobile_number": "9988776655",
+  "plan_name": "5G Max 1499",
+  "circle": "Mumbai",
+  "status": "ACTIVE"
+}
+```
+
+---
+
+## Expected Output in Snowflake
+
+```sql
+SELECT * FROM SIM_ACTIVATIONS;
+```
+
+| ACTIVATION_ID | CUSTOMER_NAME | MOBILE_NUMBER | PLAN_NAME     | CIRCLE | STATUS |
+| ------------- | ------------- | ------------- | ------------- | ------ | ------ |
+| 1             | Rahul Sharma  | 9876543210    | Unlimited 999 | Delhi  | ACTIVE |
+| 2             | Amit Kumar    | 9988776655    | 5G Max 1499   | Mumbai | ACTIVE |
+
+---
+
+## Hands-on Tasks for Learners
+
+1. Create the Snowflake database and table.
+2. Create an HTTP-triggered Azure Function.
+3. Connect Azure Function to Snowflake using the Snowflake Python Connector.
+4. Test the API using Postman.
+5. Verify records are inserted into Snowflake.
+6. Add validation to prevent duplicate mobile numbers.
+7. Return meaningful success and error messages.
+
+### Expected Outcome
+
+At the end of the exercise, learners will build a serverless telecom activation API using Azure Functions that writes customer activation data directly into Snowflake in real time.
