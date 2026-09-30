@@ -1,0 +1,135 @@
+Airtel's Network Operations team uses an internal application to manage network incidents reported from different regions. The application receives incident information from monitoring systems and support teams and allows engineers to investigate, assign, update, and close incidents.
+
+The existing application was developed several years ago and has accumulated multiple issues:
+
+Several modules contain repetitive code.
+Some methods are difficult to understand and maintain.
+Error handling is inconsistent across services.
+Unit-test coverage is low.
+API responses are not consistent.
+Some business rules are implemented differently in different modules.
+Developers spend considerable time understanding existing code before making changes.
+Documentation for several APIs and business methods is incomplete.
+Small changes occasionally introduce defects in unrelated functionality.
+Business Requirement
+
+The Network Operations team wants to introduce a new Network Incident Management capability.
+
+When an incident is reported, the system should capture:
+
+Field	Example
+Incident ID	INC-10025
+Circle	Delhi
+Network Type	5G
+Cell ID	DEL5G00125
+Incident Type	Network Outage
+Severity	Critical
+Reported Time	10:30 AM
+Affected Customers	12,500
+Status	Open
+Assigned Engineer	Rajesh Kumar
+
+The application should support the following operations:
+
+Create a network incident.
+Retrieve incident details.
+Search incidents by circle, severity, network type, or status.
+Assign an incident to an engineer.
+Update incident status.
+Add investigation comments.
+Close an incident.
+Generate an incident summary.
+Validate incoming incident data.
+Maintain an audit history of important status changes.
+Existing Application
+
+The candidate receives an existing Java/Spring Boot project containing:
+
+IncidentController
+IncidentService
+IncidentRepository
+EngineerService
+NotificationService
+Incident
+Engineer
+IncidentStatus
+Severity
+
+Some existing methods contain poor naming, duplicated logic, limited validation, and insufficient test coverage.
+
+The candidate must work with the existing codebase rather than completely replacing the application.
+
+Additional Requirement
+
+The operations team has identified the following business rule:
+
+A Critical incident affecting more than 10,000 customers must be assigned to an available senior engineer and must generate an escalation notification.
+
+The application should also prevent invalid status transitions.
+
+For example:
+
+OPEN → INVESTIGATING → RESOLVED → CLOSED
+
+A closed incident should not be moved back to OPEN without an authorized override.
+
+Candidate Tasks
+
+The candidate should:
+
+Understand the existing project structure.
+Identify areas requiring improvement.
+Implement the new functionality.
+Refactor problematic sections where necessary.
+Add appropriate validation.
+Implement exception handling.
+Improve code readability.
+Create automated tests.
+Identify missing edge cases.
+Generate appropriate documentation.
+Verify that existing functionality continues to work.
+Review the implementation for security and maintainability issues.
+Sample Scenarios
+
+Scenario 1 – Critical Incident
+
+Circle: Delhi
+Network: 5G
+Severity: Critical
+Affected Customers: 25,000
+Status: Open
+
+Expected behavior:
+
+Incident is created.
+Escalation processing is triggered.
+Appropriate engineer assignment is performed.
+Audit information is recorded.
+
+Scenario 2 – Invalid Incident
+
+Circle: Delhi
+Network: 5G
+Severity: Critical
+Affected Customers: -500
+
+The application should reject the request with a meaningful validation response.
+
+Scenario 3 – Invalid Status Change
+
+Current Status: CLOSED
+Requested Status: OPEN
+
+The application should reject the operation unless the appropriate override mechanism is used.
+
+Expected Deliverables
+Updated source code
+Refactored components where required
+REST APIs
+Automated unit tests
+Validation and exception handling
+Test data
+API documentation
+Code-review observations
+Security and maintainability observations
+Brief explanation of implementation decisions
