@@ -1,0 +1,93 @@
+Airtel's customer support team receives thousands of service-related requests every day through multiple channels. These requests include issues related to mobile connectivity, broadband, SIM activation, recharge failures, billing discrepancies, network outages, and service configuration.
+
+The development team maintains an internal Java-based Customer Support Management application used by service agents to search customer information, create support tickets, update ticket status, and generate resolution summaries.
+
+The existing application has several challenges:
+
+Developers spend significant time writing repetitive application code.
+New developers take considerable time to understand the existing codebase.
+Similar validation and error-handling logic is implemented differently across modules.
+Some APIs have inconsistent input validation.
+Unit-test coverage is insufficient for critical business logic.
+Developers manually create documentation for existing methods and APIs.
+Production defects are frequently related to missing edge-case handling.
+Business teams frequently request small changes to existing functionality.
+Business Requirement
+
+Airtel wants to enhance the application so that a service agent can enter a customer's mobile number and retrieve the following information:
+
+Customer Name
+Mobile Number
+Plan Name
+Plan Expiry Date
+Current Balance
+Open Service Tickets
+Network Status
+Last Recharge Date
+
+The application should also allow the service agent to:
+
+Create a new service ticket.
+Assign a priority.
+Update the ticket status.
+Add resolution comments.
+Search existing tickets.
+Generate a customer service summary.
+Sample Customer Data
+Mobile Number	Customer Name	Plan	Balance	Network Status
+9876543210	Rahul Mehta	Airtel 5G Plus	₹245	Active
+9876543211	Priya Sharma	Airtel Unlimited	₹120	Active
+9876543212	Amit Verma	Airtel Black	₹560	Active
+9876543213	Neha Kapoor	Airtel 5G Plus	₹0	Suspended
+Development Task
+
+You are part of Airtel's application development team.
+
+The team has provided an existing Java project containing:
+
+CustomerController
+CustomerService
+CustomerRepository
+TicketController
+TicketService
+TicketRepository
+Customer
+ServiceTicket
+TicketStatus
+
+You need to enhance the application to support the new requirements while maintaining the existing functionality.
+
+The implementation should include:
+
+Customer lookup functionality
+Ticket creation and update functionality
+Input validation
+Appropriate exception handling
+REST API implementation
+Unit tests for critical business logic
+Meaningful comments and documentation
+Consistent coding standards
+Handling of invalid mobile numbers
+Handling of customers who do not exist
+Handling of duplicate tickets
+Handling of invalid ticket-status transitions
+Additional Scenario
+
+The following request has been received from the Airtel operations team:
+
+"If a customer reports that their network is unavailable, the service agent should be able to create a high-priority ticket. The system should automatically capture the customer information, issue description, current network status, and ticket creation timestamp."
+
+The development team must implement this requirement without breaking the existing customer and ticket-management functionality.
+
+Expected Outcome
+
+At the end of the exercise, the candidate should provide a working enhancement to the existing application that:
+
+Retrieves customer information correctly.
+Creates and manages service tickets.
+Handles invalid inputs gracefully.
+Provides appropriate error messages.
+Contains meaningful automated tests.
+Follows the existing project's coding structure.
+Includes documentation for the newly added functionality.
+Can be maintained and extended by another developer.
