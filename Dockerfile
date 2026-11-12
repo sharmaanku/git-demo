@@ -54,6 +54,11 @@ USER appuser
 # 10. Expose Port
 # -----------------------------
 EXPOSE 5000
+EXPOSE 8080
+EXPOSE 8888
+
+
+
 
 # -----------------------------
 # 11. Default Command
